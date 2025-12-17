@@ -4,6 +4,7 @@ const cartTotal = document.getElementById('totalPrice');
 
 let cart = [];
 
+// Mahsulotlarni API orqali olish
 fetch('https://fakestoreapi.com/products')
   .then(res => res.json())
   .then(products => renderProducts(products))
@@ -12,12 +13,15 @@ fetch('https://fakestoreapi.com/products')
     productsGrid.innerHTML = '<p>Failed to load products.</p>';
   });
 
+// Mahsulotlarni render qilish
 function renderProducts(products) {
   productsGrid.innerHTML = '';
 
-  products.forEach(product => {
+  products.forEach((product, index) => {
     const card = document.createElement('div');
-    card.className = 'product-card';
+    card.className = 'product-card animate-on-scroll'; // scroll anim klassi
+
+    card.style.animationDelay = `${index * 100}ms`; // staggered effect
 
     card.innerHTML = `
       <img
@@ -44,10 +48,24 @@ function renderProducts(products) {
 
     productsGrid.appendChild(card);
   });
+
+  // Scroll animatsiyasi uchun IntersectionObserver
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target); // bir martalik anim
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
 }
 
+// Mahsulotni savatga qo‘shish
 function addToCart(product) {
-  console.log('Adding to cart:', product);
   const existingItem = cart.find(item => item.id === product.id);
 
   if (existingItem) {
@@ -64,17 +82,20 @@ function addToCart(product) {
   renderCart();
 }
 
+// Mahsulotni savatdan o‘chirish
 function removeFromCart(id) {
   cart = cart.filter(item => item.id !== id);
   renderCart();
 }
 
+// Savat jami narxini hisoblash
 function calculateTotal() {
   return cart.reduce((sum, item) => {
     return sum + item.price * item.qty;
   }, 0);
 }
 
+// Savatni render qilish
 function renderCart() {
   cartItems.innerHTML = '';
 
